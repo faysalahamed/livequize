@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Quiz {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  theme       String        @default("default") // default, vibrant, dark, ocean
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  questions   Question[]
+  sessions    GameSession[]
+}
+
+model Question {
+  id          String        @id @default(cuid())
+  quizId      String
+  quiz        Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  order       Int           @default(0)
+  title       String
+  type        String        @default("MULTIPLE_CHOICE") // MULTIPLE_CHOICE, POLL, WORD_CLOUD, RATING
+  timeLimit   Int           @default(20) // in seconds
+  points      Int           @default(1000)
+  options     Option[]
+  responses   Response[]
+  createdAt   DateTime      @default(now())
+}
+
+model Option {
+  id          String        @id @default(cuid())
+  questionId  String
+  question    Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text        String
+  isCorrect   Boolean       @default(false)
+  color       String?       // hex code or color name
+  order       Int           @default(0)
+  responses   Response[]
+}
+
+model GameSession {
+  id                   String        @id @default(cuid())
+  pin                  String        @unique // 6-digit session pin
+  quizId               String
+  quiz                 Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  status               String        @default("LOBBY") // LOBBY, QUESTION, REVEAL, LEADERBOARD, FINISHED
+  currentQuestionIndex Int           @default(0)
+  questionStartedAt    DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  participants         Participant[]
+  responses            Response[]
+}
+
+model Participant {
+  id        String        @id @default(cuid())
+  sessionId String
+  session   GameSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  nickname  String
+  avatar    String        @default("🚀")
+  score     Int           @default(0)
+  streak    Int           @default(0)
+  socketId  String?
+  joinedAt  DateTime      @default(now())
+  responses Response[]
+}
+
+model Response {
+  id                String       @id @default(cuid())
+  sessionId         String
+  session           GameSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId        String
+  question          Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  participantId     String
+  participant       Participant  @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  optionId          String?
+  option            Option?      @relation(fields: [optionId], references: [id], onDelete: SetNull)
+  textAnswer        String?      // for word cloud / open ended / rating
+  isCorrect         Boolean      @default(false)
+  scoreAwarded      Int          @default(0)
+  timeTakenSeconds  Float        @default(0)
+  createdAt         DateTime     @default(now())
+}
