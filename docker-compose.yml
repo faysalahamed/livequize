@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # ===================================================
+  # Web Application (Next.js + Socket.io)
+  # ===================================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mentimeter_web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mentimeter?schema=public
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ===================================================
+  # PostgreSQL Database
+  # ===================================================
+  db:
+    image: postgres:16-alpine
+    container_name: mentimeter_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mentimeter
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mentimeter"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
