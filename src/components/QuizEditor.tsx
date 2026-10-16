@@ -23,6 +23,7 @@ import {
   Image as ImageIcon,
   FileText,
 } from 'lucide-react';
+import MathRenderer from '@/components/MathRenderer';
 
 interface QuizEditorProps {
   initialQuiz?: QuizData;
@@ -347,9 +348,11 @@ export default function QuizEditor({ initialQuiz }: QuizEditorProps) {
                   </div>
                 )}
                 <div className={`w-full ${currentQuestion.imageUrl ? 'md:w-1/2' : 'max-w-2xl mx-auto text-center'}`}>
-                  <h2 className="text-2xl md:text-3xl font-black text-white mb-4 leading-tight">
-                    {currentQuestion.title || 'Untitled Slide'}
-                  </h2>
+                  <MathRenderer
+                    as="h2"
+                    className="text-2xl md:text-3xl font-black text-white mb-4 leading-tight"
+                    text={currentQuestion.title || 'Untitled Slide'}
+                  />
                   {currentQuestion.content ? (
                     <div className="space-y-2.5 text-left bg-slate-800/60 p-5 rounded-2xl border border-slate-700/60 shadow">
                       {currentQuestion.content
@@ -358,7 +361,7 @@ export default function QuizEditor({ initialQuiz }: QuizEditorProps) {
                         .map((line, idx) => (
                           <div key={idx} className="flex items-start gap-2.5 text-slate-200 text-sm md:text-base leading-relaxed">
                             <span className="text-amber-400 font-black mt-0.5">•</span>
-                            <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                            <MathRenderer text={line.replace(/^[•\-\*]\s*/, '')} />
                           </div>
                         ))}
                     </div>
@@ -369,9 +372,11 @@ export default function QuizEditor({ initialQuiz }: QuizEditorProps) {
               </div>
             ) : currentQuestion.type === 'WORD_CLOUD' ? (
               <div>
-                <h2 className="text-2xl md:text-3xl font-black text-white text-center mb-8 px-4 leading-tight">
-                  {currentQuestion.title || 'Untitled Question'}
-                </h2>
+                <MathRenderer
+                  as="h2"
+                  className="text-2xl md:text-3xl font-black text-white text-center mb-8 px-4 leading-tight"
+                  text={currentQuestion.title || 'Untitled Question'}
+                />
                 {currentQuestion.imageUrl && (
                   <div className="w-full max-w-sm mx-auto mb-6 rounded-2xl overflow-hidden border border-slate-700 shadow-lg max-h-48 flex items-center justify-center bg-slate-950">
                     <img
@@ -391,9 +396,11 @@ export default function QuizEditor({ initialQuiz }: QuizEditorProps) {
               </div>
             ) : (
               <div>
-                <h2 className="text-2xl md:text-3xl font-black text-white text-center mb-6 px-4 leading-tight">
-                  {currentQuestion.title || 'Untitled Question'}
-                </h2>
+                <MathRenderer
+                  as="h2"
+                  className="text-2xl md:text-3xl font-black text-white text-center mb-6 px-4 leading-tight"
+                  text={currentQuestion.title || 'Untitled Question'}
+                />
                 {currentQuestion.imageUrl && (
                   <div className="w-full max-w-sm mx-auto mb-6 rounded-2xl overflow-hidden border border-slate-700 shadow-lg max-h-48 flex items-center justify-center bg-slate-950">
                     <img
@@ -418,7 +425,11 @@ export default function QuizEditor({ initialQuiz }: QuizEditorProps) {
                           className="w-4 h-4 rounded-full flex-shrink-0"
                           style={{ backgroundColor: opt.color || DEFAULT_COLORS[i % DEFAULT_COLORS.length] }}
                         />
-                        <span className="font-bold text-base">{opt.text || `Option ${i + 1}`}</span>
+                        <MathRenderer
+                          as="span"
+                          className="font-bold text-base"
+                          text={opt.text || `Option ${i + 1}`}
+                        />
                       </div>
 
                       {currentQuestion.type === 'MULTIPLE_CHOICE' && opt.isCorrect && (
@@ -499,6 +510,40 @@ export default function QuizEditor({ initialQuiz }: QuizEditorProps) {
                 className="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-brand-500 transition resize-none"
                 placeholder={currentQuestion.type === 'CONTENT_SLIDE' ? 'e.g. Q3 Growth Strategy' : 'What would you like to ask?'}
               />
+
+              {/* Math Formula Shortcuts */}
+              <div className="mt-2 p-2.5 rounded-xl bg-slate-800/90 border border-slate-700">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                    Math Formula Shortcuts ($...$)
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    { label: 'a²', code: '$a^2$' },
+                    { label: '½', code: '$\\frac{1}{2}$' },
+                    { label: '√x', code: '$\\sqrt{x}$' },
+                    { label: 'a²+b²=c²', code: '$a^2 + b^2 = c^2$' },
+                    { label: 'x/y', code: '$\\frac{x}{y}$' },
+                    { label: '±', code: '$\\pm$' },
+                    { label: 'π', code: '$\\pi$' },
+                  ].map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => {
+                        updateCurrentQuestion({
+                          title: (currentQuestion.title ? currentQuestion.title + ' ' : '') + item.code,
+                        });
+                      }}
+                      className="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-700 text-slate-200 text-[11px] font-mono border border-slate-700 hover:border-brand-500 transition"
+                      title={`Insert ${item.code}`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Slide Image URL input */}

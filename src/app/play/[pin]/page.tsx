@@ -18,6 +18,7 @@ import {
   Sparkles,
   Presentation,
 } from 'lucide-react';
+import MathRenderer from '@/components/MathRenderer';
 
 const SHAPES = ['▲', '◆', '●', '■', '★', '⬟'];
 const BUTTON_COLORS = [
@@ -275,9 +276,11 @@ export default function PlayGamePage() {
                   </span>
                 )}
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-white line-clamp-3 leading-snug">
-                {currentQ.title}
-              </h2>
+              <MathRenderer
+                as="h2"
+                className="text-lg sm:text-xl font-bold text-white line-clamp-3 leading-snug"
+                text={currentQ.title}
+              />
             </div>
 
             {/* If CONTENT_SLIDE: Display Slide View on Mobile */}
@@ -301,7 +304,7 @@ export default function PlayGamePage() {
                         .map((line, idx) => (
                           <div key={idx} className="flex items-start gap-2 text-slate-200 text-sm leading-relaxed">
                             <span className="text-amber-400 font-bold">•</span>
-                            <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                            <MathRenderer text={line.replace(/^[•\-\*]\s*/, '')} />
                           </div>
                         ))}
                     </div>
@@ -381,9 +384,11 @@ export default function PlayGamePage() {
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-2xl drop-shadow">{SHAPES[idx % SHAPES.length]}</span>
-                          <span className="text-base sm:text-lg leading-snug line-clamp-2">
-                            {opt.text}
-                          </span>
+                          <MathRenderer
+                            as="span"
+                            className="text-base sm:text-lg leading-snug line-clamp-2"
+                            text={opt.text}
+                          />
                         </div>
                       </button>
                     );

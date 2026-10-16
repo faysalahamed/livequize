@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { QuizData } from '@/lib/types';
 import { Play, Edit2, Trash2, HelpCircle, Layers, Loader2 } from 'lucide-react';
+import MathRenderer from '@/components/MathRenderer';
 
 interface QuizCardProps {
   quiz: QuizData;
@@ -71,13 +72,17 @@ export default function QuizCard({ quiz, onDelete }: QuizCardProps) {
           </div>
         </div>
 
-        <h3 className="text-xl font-bold text-white group-hover:text-brand-300 transition-colors line-clamp-1 mb-2">
-          {quiz.title}
-        </h3>
+        <MathRenderer
+          as="h3"
+          className="text-xl font-bold text-white group-hover:text-brand-300 transition-colors line-clamp-1 mb-2"
+          text={quiz.title}
+        />
 
-        <p className="text-sm text-slate-400 line-clamp-2 mb-4 leading-relaxed">
-          {quiz.description || 'No description provided.'}
-        </p>
+        <MathRenderer
+          as="p"
+          className="text-sm text-slate-400 line-clamp-2 mb-4 leading-relaxed"
+          text={quiz.description || 'No description provided.'}
+        />
 
         {/* Feature Tags */}
         <div className="flex flex-wrap gap-1.5 mb-6">

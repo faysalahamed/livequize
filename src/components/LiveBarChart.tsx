@@ -3,6 +3,7 @@
 import React from 'react';
 import { OptionData, ResponseData } from '@/lib/types';
 import { Check, Users } from 'lucide-react';
+import MathRenderer from '@/components/MathRenderer';
 
 interface LiveBarChartProps {
   options: OptionData[];
@@ -94,9 +95,11 @@ export default function LiveBarChart({
                     : 'bg-slate-800/80 border-slate-700 text-white'
                 }`}
               >
-                <p className="text-base md:text-lg font-bold leading-snug line-clamp-2">
-                  {opt.text}
-                </p>
+                <MathRenderer
+                  as="p"
+                  className="text-base md:text-lg font-bold leading-snug line-clamp-2"
+                  text={opt.text}
+                />
               </div>
             </div>
           );

@@ -25,6 +25,7 @@ import {
   ArrowLeft,
   Presentation,
 } from 'lucide-react';
+import MathRenderer from '@/components/MathRenderer';
 
 export default function HostLivePage() {
   const params = useParams();
@@ -395,9 +396,11 @@ export default function HostLivePage() {
                   </div>
                 )}
                 <div className={`w-full ${currentQuestion.imageUrl ? 'lg:w-1/2' : 'max-w-4xl text-center'}`}>
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-6 leading-tight drop-shadow-md">
-                    {currentQuestion.title}
-                  </h1>
+                  <MathRenderer
+                    as="h1"
+                    className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-6 leading-tight drop-shadow-md"
+                    text={currentQuestion.title}
+                  />
                   {currentQuestion.content && (
                     <div className="space-y-4 text-left bg-slate-800/80 p-6 rounded-2xl border border-slate-700/80 shadow-lg">
                       {currentQuestion.content
@@ -409,7 +412,7 @@ export default function HostLivePage() {
                             className="flex items-start gap-3 text-slate-100 text-lg sm:text-xl leading-relaxed"
                           >
                             <span className="text-amber-400 font-black text-2xl leading-none mt-0.5">•</span>
-                            <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                            <MathRenderer text={line.replace(/^[•\-\*]\s*/, '')} />
                           </div>
                         ))}
                     </div>
@@ -419,9 +422,11 @@ export default function HostLivePage() {
             ) : (
               <>
                 {/* Big Question Prompt */}
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white text-center mb-6 max-w-4xl px-4 leading-tight drop-shadow-md">
-                  {currentQuestion.title}
-                </h1>
+                <MathRenderer
+                  as="h1"
+                  className="text-3xl sm:text-4xl md:text-5xl font-black text-white text-center mb-6 max-w-4xl px-4 leading-tight drop-shadow-md"
+                  text={currentQuestion.title}
+                />
 
                 {/* Optional Question Image */}
                 {currentQuestion.imageUrl && (
@@ -465,9 +470,11 @@ export default function HostLivePage() {
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white text-center mb-8 max-w-4xl px-4 leading-tight">
-              {currentQuestion.title}
-            </h1>
+            <MathRenderer
+              as="h1"
+              className="text-3xl sm:text-4xl md:text-5xl font-black text-white text-center mb-8 max-w-4xl px-4 leading-tight"
+              text={currentQuestion.title}
+            />
 
             {currentQuestion.type === 'WORD_CLOUD' ? (
               <WordCloud

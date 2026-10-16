@@ -109,6 +109,63 @@ const SAMPLE_QUIZZES = [
       },
     ],
   },
+  {
+    title: '📐 Mathematics & Science Live Challenge',
+    description: 'Explore algebra, fractions, Pythagorean theorem, and calculus formulas with live KaTeX rendering!',
+    theme: 'vibrant',
+    questions: [
+      {
+        title: '📐 Welcome to Mathematics & Science Live Quiz!',
+        type: 'CONTENT_SLIDE',
+        timeLimit: 0,
+        points: 0,
+        order: 0,
+        imageUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1200&auto=format&fit=crop&q=80',
+        content: '• Real-time math formula rendering with KaTeX\n• Pythagorean Theorem: $a^2 + b^2 = c^2$\n• Fraction operations: $\\frac{1}{2} + \\frac{1}{4} = \\frac{3}{4}$\n• Test your mathematical problem-solving skills!',
+        options: [],
+      },
+      {
+        title: 'In a right-angled triangle with sides $a = 3$ and $b = 4$, what is $c$ using $a^2 + b^2 = c^2$?',
+        type: 'MULTIPLE_CHOICE',
+        timeLimit: 25,
+        points: 1000,
+        order: 1,
+        imageUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=1000&auto=format&fit=crop&q=80',
+        options: [
+          { text: '$c = 5$', isCorrect: true, color: '#10B981', order: 0 },
+          { text: '$c = 7$', isCorrect: false, color: '#EF4444', order: 1 },
+          { text: '$c = 6$', isCorrect: false, color: '#3B82F6', order: 2 },
+          { text: '$c = \\sqrt{7}$', isCorrect: false, color: '#EAB308', order: 3 },
+        ],
+      },
+      {
+        title: 'What is the sum of $\\frac{1}{2} + \\frac{1}{4}$?',
+        type: 'MULTIPLE_CHOICE',
+        timeLimit: 20,
+        points: 1000,
+        order: 2,
+        options: [
+          { text: '$\\frac{3}{4}$', isCorrect: true, color: '#3B82F6', order: 0 },
+          { text: '$\\frac{2}{6}$', isCorrect: false, color: '#EF4444', order: 1 },
+          { text: '$\\frac{1}{8}$', isCorrect: false, color: '#EAB308', order: 2 },
+          { text: '$1$', isCorrect: false, color: '#10B981', order: 3 },
+        ],
+      },
+      {
+        title: 'Live Poll: What is your favorite branch of mathematics?',
+        type: 'POLL',
+        timeLimit: 20,
+        points: 0,
+        order: 3,
+        options: [
+          { text: 'Algebra ($x^2, y$)', isCorrect: false, color: '#3B82F6', order: 0 },
+          { text: 'Geometry ($a^2 + b^2$)', isCorrect: false, color: '#10B981', order: 1 },
+          { text: 'Calculus ($\\frac{df}{dx}$)', isCorrect: false, color: '#8B5CF6', order: 2 },
+          { text: 'Probability & Statistics', isCorrect: false, color: '#EAB308', order: 3 },
+        ],
+      },
+    ],
+  },
 ];
 
 async function main() {
