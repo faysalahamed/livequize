@@ -1,6 +1,6 @@
-# 📖 MentiPulse — User Manual & Operations Guide
+# 📖 MagicQuize — User Manual & Operations Guide
 
-Welcome to the **MentiPulse User Manual**. MentiPulse is a real-time, interactive presentation and live quiz platform inspired by Mentimeter and Kahoot. It enables presenters to engage audiences in real time through interactive quizzes, live polls, and dynamic word clouds using **Next.js**, **PostgreSQL (Prisma ORM)**, and **WebSockets (Socket.io)**.
+Welcome to the **MagicQuize User Manual**. MagicQuize is a real-time, interactive presentation and live quiz platform inspired by Mentimeter and Kahoot. It enables presenters to engage audiences in real time through interactive quizzes, live polls, and dynamic word clouds using **Next.js**, **PostgreSQL (Prisma ORM)**, and **WebSockets (Socket.io)**.
 
 ---
 
@@ -50,6 +50,31 @@ The server starts both the Next.js App Router and the Socket.io WebSocket server
 
 ### Stopping the Server
 Press `Ctrl + C` in your terminal to stop the server.
+
+---
+
+## 2.1 Customizing the Application Name & Branding
+
+You can change the application name at any time without editing any component code!
+
+### Method 1: Via `.env` (Quickest)
+Open `.env` and set:
+```env
+NEXT_PUBLIC_APP_NAME="YourCustomName"
+NEXT_PUBLIC_APP_DESC="Your Custom Tagline"
+```
+
+### Method 2: Via Configuration File
+Open [`src/config/app.ts`](file:///d:/ANTIGRAVITY_PROJECTS/mentimeter-clone/src/config/app.ts):
+```ts
+export const appConfig = {
+  name: process.env.NEXT_PUBLIC_APP_NAME || 'YourCustomName',
+  description: 'Your Custom Tagline',
+  tagline: 'Live Interactive Quiz',
+  footerText: 'Interactive Presentation Platform',
+};
+```
+The entire application (Navbar logo, browser tab title, mobile audience views, server logs, and footer) will automatically update everywhere!
 
 ---
 

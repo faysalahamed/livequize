@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { appConfig } from '@/config/app';
 
 export const metadata: Metadata = {
-  title: 'MentiPulse | Live Interactive Quizzes & Real-time Polls',
-  description: 'Create and host live quizzes, audience polls, and interactive word clouds like Mentimeter.',
+  title: `${appConfig.name} | ${appConfig.description}`,
+  description: appConfig.description,
 };
 
 export default function RootLayout({

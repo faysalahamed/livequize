@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSocket } from '@/lib/use-socket';
 import { SessionState, QuestionData, ParticipantData, ResponseData } from '@/lib/types';
 import { sounds } from '@/lib/sounds';
+import { appConfig } from '@/config/app';
 import {
   CheckCircle,
   XCircle,
@@ -425,7 +426,7 @@ export default function PlayGamePage() {
       {/* Mobile Footer */}
       <footer className="h-12 border-t border-slate-900 bg-slate-950 px-4 flex items-center justify-between text-[11px] text-slate-500">
         <span>PIN: {pin}</span>
-        <span>MentiPulse Live</span>
+        <span>{appConfig.name} Live</span>
       </footer>
     </div>
   );

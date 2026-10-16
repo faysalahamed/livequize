@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Sparkles, Plus, Play, Database } from 'lucide-react';
+import { appConfig } from '@/config/app';
 
 export default function Navbar() {
   const router = useRouter();
@@ -26,10 +27,10 @@ export default function Navbar() {
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-black tracking-tight text-white flex items-center gap-1">
-              Menti<span className="text-brand-400">Pulse</span>
+              {appConfig.name}
             </span>
             <span className="text-[10px] text-slate-400 -mt-1 font-medium tracking-wide uppercase">
-              Live Interactive Quiz
+              {appConfig.tagline}
             </span>
           </div>
         </Link>

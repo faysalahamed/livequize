@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import { Play, Sparkles, BarChart3, Cloud, Trophy, Zap, ShieldCheck, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { appConfig } from '@/config/app';
 
 export default function HomePage() {
   const router = useRouter();
@@ -124,7 +125,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-slate-800/80 py-8 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© 2026 MentiPulse • Interactive Presentation Platform</p>
+          <p>© {new Date().getFullYear()} {appConfig.name} • {appConfig.footerText}</p>
           <div className="flex items-center gap-4 text-slate-400">
             <span>Next.js App Router</span>
             <span>•</span>

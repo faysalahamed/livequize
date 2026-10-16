@@ -1,4 +1,4 @@
-# 🚀 MentiPulse — Real-Time Live Quiz & Presentation Platform
+# 🚀 MagicQuize — Real-Time Live Quiz & Presentation Platform
 
 A modern, high-performance **Mentimeter & Kahoot alternative** built with **Next.js (App Router)**, **PostgreSQL (Prisma ORM)**, and **WebSockets (Socket.io)**.
 

@@ -212,8 +212,9 @@ app.prepare().then(() => {
   });
 
   server.listen(port, () => {
+    const appName = process.env.NEXT_PUBLIC_APP_NAME || 'MagicQuize';
     console.log(`\n======================================================`);
-    console.log(`🚀 Mentimeter Live Quiz Server is RUNNING!`);
+    console.log(`🚀 ${appName} Live Server is RUNNING!`);
     console.log(`📍 Web URL: http://localhost:${port}`);
     console.log(`📱 Join Page: http://localhost:${port}/join`);
     console.log(`🎯 Host Dashboard: http://localhost:${port}/dashboard`);
