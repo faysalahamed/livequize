@@ -60,6 +60,8 @@ export async function getAllQuizzes(): Promise<QuizData[]> {
             timeLimit: quest.timeLimit,
             points: quest.points,
             order: quest.order,
+            imageUrl: quest.imageUrl || undefined,
+            content: quest.content || undefined,
             options: quest.options.map((opt) => ({
               id: opt.id,
               text: opt.text,
@@ -110,6 +112,8 @@ export async function getQuizById(id: string): Promise<QuizData | null> {
             timeLimit: quest.timeLimit,
             points: quest.points,
             order: quest.order,
+            imageUrl: quest.imageUrl || undefined,
+            content: quest.content || undefined,
             options: quest.options.map((opt) => ({
               id: opt.id,
               text: opt.text,
@@ -159,6 +163,8 @@ export async function saveQuiz(quizData: QuizData): Promise<QuizData> {
               type: quest.type,
               timeLimit: quest.timeLimit,
               points: quest.points,
+              imageUrl: quest.imageUrl || null,
+              content: quest.content || null,
               order: qIdx,
               options: {
                 create: quest.options.map((opt, oIdx) => ({

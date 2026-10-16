@@ -1,4 +1,4 @@
-export type QuestionType = 'MULTIPLE_CHOICE' | 'POLL' | 'WORD_CLOUD' | 'RATING';
+export type QuestionType = 'MULTIPLE_CHOICE' | 'POLL' | 'WORD_CLOUD' | 'RATING' | 'CONTENT_SLIDE';
 
 export interface OptionData {
   id: string;
@@ -15,6 +15,8 @@ export interface QuestionData {
   timeLimit: number;
   points: number;
   order: number;
+  imageUrl?: string | null;
+  content?: string | null;
   options: OptionData[];
 }
 

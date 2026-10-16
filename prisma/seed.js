@@ -9,11 +9,22 @@ const SAMPLE_QUIZZES = [
     theme: 'vibrant',
     questions: [
       {
+        title: 'Welcome to MagicQuize Live Presentation!',
+        type: 'CONTENT_SLIDE',
+        timeLimit: 0,
+        points: 0,
+        order: 0,
+        imageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&auto=format&fit=crop&q=80',
+        content: '• Real-time interactive presentations & live audience engagement\n• Live animated bar charts, word clouds & 3-tier podiums\n• Multi-device synchronization: phones, tablets, and projectors\n• Enjoy this demonstration interactive session!',
+        options: [],
+      },
+      {
         title: 'Which language runs natively in modern web browsers alongside JavaScript?',
         type: 'MULTIPLE_CHOICE',
         timeLimit: 20,
         points: 1000,
-        order: 0,
+        order: 1,
+        imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1000&auto=format&fit=crop&q=80',
         options: [
           { text: 'Python', isCorrect: false, color: '#EF4444', order: 0 },
           { text: 'WebAssembly (Wasm)', isCorrect: true, color: '#3B82F6', order: 1 },
@@ -114,6 +125,8 @@ async function main() {
             type: question.type,
             timeLimit: question.timeLimit,
             points: question.points,
+            imageUrl: question.imageUrl,
+            content: question.content,
             order: question.order,
             options: {
               create: question.options.map((opt) => ({

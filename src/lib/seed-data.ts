@@ -10,12 +10,24 @@ export const SAMPLE_QUIZZES: QuizData[] = [
     updatedAt: new Date().toISOString(),
     questions: [
       {
+        id: 'slide-intro',
+        title: 'Welcome to MagicQuize Live Presentation!',
+        type: 'CONTENT_SLIDE',
+        timeLimit: 0,
+        points: 0,
+        order: 0,
+        imageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&auto=format&fit=crop&q=80',
+        content: '• Real-time interactive presentations & live audience engagement\n• Live animated bar charts, word clouds & 3-tier podiums\n• Multi-device synchronization: phones, tablets, and projectors\n• Enjoy this demonstration interactive session!',
+        options: [],
+      },
+      {
         id: 'q1',
         title: 'Which language runs natively in modern web browsers alongside JavaScript?',
         type: 'MULTIPLE_CHOICE',
         timeLimit: 20,
         points: 1000,
-        order: 0,
+        order: 1,
+        imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1000&auto=format&fit=crop&q=80',
         options: [
           { id: 'opt-1-1', text: 'Python', isCorrect: false, color: '#EF4444', order: 0 },
           { id: 'opt-1-2', text: 'WebAssembly (Wasm)', isCorrect: true, color: '#3B82F6', order: 1 },

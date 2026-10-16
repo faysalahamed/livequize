@@ -23,6 +23,7 @@ import {
   Clock,
   Loader2,
   ArrowLeft,
+  Presentation,
 } from 'lucide-react';
 
 export default function HostLivePage() {
@@ -131,6 +132,11 @@ export default function HostLivePage() {
 
     if (session?.status === 'QUESTION' && session.questions[session.currentQuestionIndex]) {
       const currentQ = session.questions[session.currentQuestionIndex];
+      if (currentQ.type === 'CONTENT_SLIDE' || currentQ.timeLimit <= 0) {
+        setTimeLeft(0);
+        return;
+      }
+
       const initialSeconds = currentQ.timeLimit || 20;
       setTimeLeft(initialSeconds);
 
@@ -342,46 +348,107 @@ export default function HostLivePage() {
           </div>
         )}
 
-        {/* ================= 2. ACTIVE QUESTION STATE ================= */}
+        {/* ================= 2. ACTIVE QUESTION / CONTENT SLIDE STATE ================= */}
         {session.status === 'QUESTION' && currentQuestion && (
           <div className="w-full max-w-6xl flex flex-col items-center animate-fade-in">
             {/* Slide Index & Timer Header */}
             <div className="w-full flex items-center justify-between mb-6 px-4">
-              <span className="text-sm font-bold text-slate-400 uppercase tracking-wider">
-                Question {session.currentQuestionIndex + 1} of {session.questions.length}
+              <span className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                {currentQuestion.type === 'CONTENT_SLIDE' ? (
+                  <span className="text-amber-400 flex items-center gap-1.5">
+                    <Presentation className="w-4 h-4" /> Presentation Slide {session.currentQuestionIndex + 1} of {session.questions.length}
+                  </span>
+                ) : (
+                  `Question ${session.currentQuestionIndex + 1} of ${session.questions.length}`
+                )}
               </span>
 
-              {/* Countdown Circular Ring / Badge */}
-              <div
-                className={`flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-lg font-mono border shadow-lg transition ${
-                  timeLeft <= 5
-                    ? 'bg-red-950/80 border-red-500 text-red-300 animate-pulse'
-                    : 'bg-slate-900/80 border-slate-700 text-white'
-                }`}
-              >
-                <Clock className="w-5 h-5 text-brand-400" />
-                <span>{timeLeft}s</span>
-              </div>
+              {/* Countdown Circular Ring / Badge (only if timeLimit > 0) */}
+              {currentQuestion.timeLimit > 0 && (
+                <div
+                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-lg font-mono border shadow-lg transition ${
+                    timeLeft <= 5
+                      ? 'bg-red-950/80 border-red-500 text-red-300 animate-pulse'
+                      : 'bg-slate-900/80 border-slate-700 text-white'
+                  }`}
+                >
+                  <Clock className="w-5 h-5 text-brand-400" />
+                  <span>{timeLeft}s</span>
+                </div>
+              )}
             </div>
 
-            {/* Big Question Prompt */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white text-center mb-8 max-w-4xl px-4 leading-tight drop-shadow-md">
-              {currentQuestion.title}
-            </h1>
-
-            {/* Visualization Stage */}
-            {currentQuestion.type === 'WORD_CLOUD' ? (
-              <WordCloud
-                responses={currentQuestionResponses}
-                totalParticipants={session.participants.length}
-              />
+            {/* If CONTENT_SLIDE: Render PowerPoint Presentation Layout */}
+            {currentQuestion.type === 'CONTENT_SLIDE' ? (
+              <div
+                className={`w-full flex flex-col ${
+                  currentQuestion.imageUrl ? 'lg:flex-row items-center gap-10' : 'items-center'
+                } bg-slate-900/60 border border-slate-800 rounded-3xl p-8 lg:p-12 shadow-2xl backdrop-blur my-4`}
+              >
+                {currentQuestion.imageUrl && (
+                  <div className="w-full lg:w-1/2 max-h-[460px] rounded-2xl overflow-hidden border-2 border-slate-700/80 shadow-2xl bg-slate-950 flex items-center justify-center">
+                    <img
+                      src={currentQuestion.imageUrl}
+                      alt="Presentation Visual"
+                      className="w-full h-full object-cover max-h-[460px]"
+                    />
+                  </div>
+                )}
+                <div className={`w-full ${currentQuestion.imageUrl ? 'lg:w-1/2' : 'max-w-4xl text-center'}`}>
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-6 leading-tight drop-shadow-md">
+                    {currentQuestion.title}
+                  </h1>
+                  {currentQuestion.content && (
+                    <div className="space-y-4 text-left bg-slate-800/80 p-6 rounded-2xl border border-slate-700/80 shadow-lg">
+                      {currentQuestion.content
+                        .split('\n')
+                        .filter(Boolean)
+                        .map((line, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-start gap-3 text-slate-100 text-lg sm:text-xl leading-relaxed"
+                          >
+                            <span className="text-amber-400 font-black text-2xl leading-none mt-0.5">•</span>
+                            <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             ) : (
-              <LiveBarChart
-                options={currentQuestion.options}
-                responses={currentQuestionResponses}
-                showCorrectAnswer={false}
-                totalParticipants={session.participants.length}
-              />
+              <>
+                {/* Big Question Prompt */}
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white text-center mb-6 max-w-4xl px-4 leading-tight drop-shadow-md">
+                  {currentQuestion.title}
+                </h1>
+
+                {/* Optional Question Image */}
+                {currentQuestion.imageUrl && (
+                  <div className="w-full max-w-md mx-auto mb-6 rounded-2xl overflow-hidden border border-slate-700 shadow-xl max-h-56 flex items-center justify-center bg-slate-950">
+                    <img
+                      src={currentQuestion.imageUrl}
+                      alt="Question Visual"
+                      className="w-full h-full object-cover max-h-56"
+                    />
+                  </div>
+                )}
+
+                {/* Visualization Stage */}
+                {currentQuestion.type === 'WORD_CLOUD' ? (
+                  <WordCloud
+                    responses={currentQuestionResponses}
+                    totalParticipants={session.participants.length}
+                  />
+                ) : (
+                  <LiveBarChart
+                    options={currentQuestion.options}
+                    responses={currentQuestionResponses}
+                    showCorrectAnswer={false}
+                    totalParticipants={session.participants.length}
+                  />
+                )}
+              </>
             )}
           </div>
         )}
@@ -469,7 +536,17 @@ export default function HostLivePage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {session.status === 'QUESTION' && (
+            {session.status === 'QUESTION' && currentQuestion?.type === 'CONTENT_SLIDE' && (
+              <button
+                onClick={isLastQuestion ? handleEndQuiz : handleNextQuestion}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm transition shadow-lg shadow-brand-600/30 hover:scale-105"
+              >
+                <span>{isLastQuestion ? 'Final Results 🏆' : 'Next Slide'}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
+
+            {session.status === 'QUESTION' && currentQuestion?.type !== 'CONTENT_SLIDE' && (
               <button
                 onClick={handleRevealAnswer}
                 className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 transition"

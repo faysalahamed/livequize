@@ -24,9 +24,11 @@ model Question {
   quiz        Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
   order       Int           @default(0)
   title       String
-  type        String        @default("MULTIPLE_CHOICE") // MULTIPLE_CHOICE, POLL, WORD_CLOUD, RATING
+  type        String        @default("MULTIPLE_CHOICE") // MULTIPLE_CHOICE, POLL, WORD_CLOUD, RATING, CONTENT_SLIDE
   timeLimit   Int           @default(20) // in seconds
   points      Int           @default(1000)
+  imageUrl    String?       // optional image URL
+  content     String?       // optional body text / bullet points for content slides
   options     Option[]
   responses   Response[]
   createdAt   DateTime      @default(now())

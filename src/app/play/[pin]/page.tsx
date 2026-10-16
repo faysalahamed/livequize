@@ -16,6 +16,7 @@ import {
   Loader2,
   Lock,
   Sparkles,
+  Presentation,
 } from 'lucide-react';
 
 const SHAPES = ['▲', '◆', '●', '■', '★', '⬟'];
@@ -265,20 +266,54 @@ export default function PlayGamePage() {
         {session.status === 'QUESTION' && currentQ && (
           <div className="w-full flex-1 flex flex-col justify-between py-2 animate-fade-in">
             {/* Top Prompt & Timer */}
-            <div className="mb-4 text-center">
+            <div className="mb-3 text-center">
               <div className="flex items-center justify-between mb-2 text-xs font-bold text-slate-400">
                 <span>Slide {session.currentQuestionIndex + 1}</span>
-                <span className="flex items-center gap-1 text-brand-400 font-mono">
-                  <Clock className="w-3.5 h-3.5" /> {timeLeft}s
-                </span>
+                {currentQ.timeLimit > 0 && (
+                  <span className="flex items-center gap-1 text-brand-400 font-mono">
+                    <Clock className="w-3.5 h-3.5" /> {timeLeft}s
+                  </span>
+                )}
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-white line-clamp-3 leading-snug">
                 {currentQ.title}
               </h2>
             </div>
 
-            {/* If Already Answered: Show Locked In screen */}
-            {hasAnswered ? (
+            {/* If CONTENT_SLIDE: Display Slide View on Mobile */}
+            {currentQ.type === 'CONTENT_SLIDE' ? (
+              <div className="flex-1 flex flex-col justify-center my-2 animate-fade-in">
+                <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl">
+                  {currentQ.imageUrl && (
+                    <div className="w-full max-h-52 rounded-2xl overflow-hidden border border-slate-700/80 mb-4 bg-slate-950 flex items-center justify-center">
+                      <img
+                        src={currentQ.imageUrl}
+                        alt="Slide visual"
+                        className="w-full h-full object-cover max-h-52"
+                      />
+                    </div>
+                  )}
+                  {currentQ.content && (
+                    <div className="space-y-2 text-left bg-slate-800/60 p-4 rounded-2xl border border-slate-700/60 mb-4">
+                      {currentQ.content
+                        .split('\n')
+                        .filter(Boolean)
+                        .map((line, idx) => (
+                          <div key={idx} className="flex items-start gap-2 text-slate-200 text-sm leading-relaxed">
+                            <span className="text-amber-400 font-bold">•</span>
+                            <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <span>Presenter is speaking... Follow along with the slide!</span>
+                  </div>
+                </div>
+              </div>
+            ) : hasAnswered ? (
+              /* If Already Answered: Show Locked In screen */
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-900/80 rounded-3xl border border-slate-800 my-4 shadow-xl">
                 <div className="w-16 h-16 rounded-full bg-brand-600/20 border-2 border-brand-500 flex items-center justify-center text-brand-400 mb-4 animate-pulse">
                   <Lock className="w-8 h-8" />
@@ -291,6 +326,15 @@ export default function PlayGamePage() {
             ) : currentQ.type === 'WORD_CLOUD' ? (
               /* Word Cloud submission input */
               <form onSubmit={handleSubmitWord} className="flex-1 flex flex-col justify-center gap-4 my-4">
+                {currentQ.imageUrl && (
+                  <div className="w-full max-h-40 rounded-xl overflow-hidden border border-slate-700/80 mb-2 bg-slate-950 flex items-center justify-center">
+                    <img
+                      src={currentQ.imageUrl}
+                      alt="Illustration"
+                      className="w-full h-full object-cover max-h-40"
+                    />
+                  </div>
+                )}
                 <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2 text-center">
                     Type your word or idea
@@ -316,24 +360,35 @@ export default function PlayGamePage() {
               </form>
             ) : (
               /* Multiple Choice / Poll touch buttons */
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 flex-1 my-2">
-                {currentQ.options.map((opt, idx) => {
-                  const colorClass = BUTTON_COLORS[idx % BUTTON_COLORS.length];
-                  return (
-                    <button
-                      key={opt.id}
-                      onClick={() => handleSelectOption(opt.id)}
-                      className={`w-full min-h-[90px] rounded-2xl p-4 flex items-center justify-between text-left font-bold text-white shadow-lg transition transform active:scale-95 border-2 ${colorClass}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl drop-shadow">{SHAPES[idx % SHAPES.length]}</span>
-                        <span className="text-base sm:text-lg leading-snug line-clamp-2">
-                          {opt.text}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
+              <div className="flex-1 flex flex-col justify-center my-2">
+                {currentQ.imageUrl && (
+                  <div className="w-full max-h-36 rounded-xl overflow-hidden border border-slate-700/80 mb-3 bg-slate-950 flex items-center justify-center">
+                    <img
+                      src={currentQ.imageUrl}
+                      alt="Question diagram"
+                      className="w-full h-full object-cover max-h-36"
+                    />
+                  </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+                  {currentQ.options.map((opt, idx) => {
+                    const colorClass = BUTTON_COLORS[idx % BUTTON_COLORS.length];
+                    return (
+                      <button
+                        key={opt.id}
+                        onClick={() => handleSelectOption(opt.id)}
+                        className={`w-full min-h-[85px] rounded-2xl p-4 flex items-center justify-between text-left font-bold text-white shadow-lg transition transform active:scale-95 border-2 ${colorClass}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl drop-shadow">{SHAPES[idx % SHAPES.length]}</span>
+                          <span className="text-base sm:text-lg leading-snug line-clamp-2">
+                            {opt.text}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
