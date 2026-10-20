@@ -212,6 +212,15 @@ app.prepare().then(() => {
     });
   });
 
+  server.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`\n❌ [PORT CONFLICT] Port ${port} is already in use by another running server!`);
+      console.error(`💡 Fix: Close your other terminal or run: Stop-Process -Name node -Force\n`);
+      process.exit(1);
+    }
+    console.error('[Server Error]', err);
+  });
+
   server.listen(port, () => {
     const appName = process.env.NEXT_PUBLIC_APP_NAME || 'MagicQuize';
     console.log(`\n======================================================`);
