@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: false,
   swcMinify: true,
   experimental: {
-    optimizePackageImports: ['lucide-react', 'katex', 'framer-motion'],
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
 };
 

@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
-import katex from 'katex';
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
 
 interface MathRendererProps {
   text?: string | null;
@@ -12,6 +13,26 @@ interface Segment {
   content: string;
 }
 
+// Global cached instance so KaTeX is loaded dynamically at most once
+let cachedKaTeX: any = null;
+let katexLoadPromise: Promise<any> | null = null;
+
+function loadKaTeX(): Promise<any> {
+  if (cachedKaTeX) return Promise.resolve(cachedKaTeX);
+  if (!katexLoadPromise) {
+    katexLoadPromise = import('katex')
+      .then((mod) => {
+        cachedKaTeX = mod.default || mod;
+        return cachedKaTeX;
+      })
+      .catch((err) => {
+        console.warn('[MathRenderer] Failed to load KaTeX dynamically:', err);
+        return null;
+      });
+  }
+  return katexLoadPromise;
+}
+
 export default function MathRenderer({
   text = '',
   className = '',
@@ -19,33 +40,53 @@ export default function MathRenderer({
 }: MathRendererProps) {
   const content = text ?? '';
 
-  const segments = useMemo<Segment[]>(() => {
-    if (!content) return [];
+  // Fast path: 98% of text in quizzes has no math delimiters.
+  // Bypass all hooks, state, and KaTeX loading entirely!
+  const hasMath = Boolean(
+    content && (content.includes('$') || content.includes('\\(') || content.includes('\\['))
+  );
 
-    // Fast check: if no math markers ($ or \), return plain text
-    if (!content.includes('$') && !content.includes('\\(') && !content.includes('\\[')) {
-      return [{ type: 'text', content }];
+  if (!hasMath || !content) {
+    return <Component className={className}>{content}</Component>;
+  }
+
+  return <DynamicMathComponent text={content} className={className} as={Component} />;
+}
+
+// Separate component only mounted when math delimiters are detected
+function DynamicMathComponent({
+  text,
+  className,
+  as: Component,
+}: {
+  text: string;
+  className: string;
+  as: 'span' | 'div' | 'p' | 'h1' | 'h2' | 'h3';
+}) {
+  const [katexInstance, setKatexInstance] = useState<any>(cachedKaTeX);
+
+  useEffect(() => {
+    if (!katexInstance) {
+      loadKaTeX().then((mod) => {
+        if (mod) setKatexInstance(mod);
+      });
     }
+  }, [katexInstance]);
 
+  const segments = useMemo<Segment[]>(() => {
     const result: Segment[] = [];
-    // Regex matching:
-    // 1. $$ ... $$ (display math)
-    // 2. \[ ... \] (display math)
-    // 3. $ ... $ (inline math)
-    // 4. \( ... \) (inline math)
     const regex = /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\$([^\$\n]+?)\$|\\\(([\s\S]+?)\\\)/g;
 
     let lastIndex = 0;
     let match: RegExpExecArray | null;
 
-    while ((match = regex.exec(content)) !== null) {
+    while ((match = regex.exec(text)) !== null) {
       const matchIndex = match.index;
 
-      // Text before the match
       if (matchIndex > lastIndex) {
         result.push({
           type: 'text',
-          content: content.slice(lastIndex, matchIndex),
+          content: text.slice(lastIndex, matchIndex),
         });
       }
 
@@ -67,23 +108,15 @@ export default function MathRenderer({
       lastIndex = regex.lastIndex;
     }
 
-    // Remaining text after last match
-    if (lastIndex < content.length) {
+    if (lastIndex < text.length) {
       result.push({
         type: 'text',
-        content: content.slice(lastIndex),
+        content: text.slice(lastIndex),
       });
     }
 
     return result;
-  }, [content]);
-
-  if (!content) return null;
-
-  // If no math was parsed, return plain text
-  if (segments.length === 1 && segments[0].type === 'text') {
-    return <Component className={className}>{content}</Component>;
-  }
+  }, [text]);
 
   return (
     <Component className={className}>
@@ -94,15 +127,23 @@ export default function MathRenderer({
 
         const isBlock = seg.type === 'math-block';
 
+        if (!katexInstance) {
+          // Fallback while KaTeX chunk is loading asynchronously
+          return (
+            <span key={idx} className="font-mono text-amber-300/90 text-sm">
+              {seg.content}
+            </span>
+          );
+        }
+
         let html = '';
         try {
-          html = katex.renderToString(seg.content, {
+          html = katexInstance.renderToString(seg.content, {
             displayMode: isBlock,
             throwOnError: false,
             output: 'htmlAndMathml',
           });
         } catch {
-          // Fallback to raw text if rendering fails
           return (
             <code key={idx} className="bg-slate-800 text-amber-300 px-1 py-0.5 rounded text-sm">
               {seg.content}
