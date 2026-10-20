@@ -4,7 +4,8 @@ import next from 'next';
 import { Server } from 'socket.io';
 import * as quizService from './src/lib/quiz-service';
 
-const dev = process.env.NODE_ENV !== 'production';
+const isProd = process.env.NODE_ENV === 'production' || process.argv.includes('--prod') || process.argv.includes('--production');
+const dev = !isProd;
 const hostname = '0.0.0.0';
 const port = parseInt(process.env.PORT || '3000', 10);
 

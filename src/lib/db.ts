@@ -17,19 +17,26 @@ if (process.env.NODE_ENV !== 'production') {
 
 let cachedStatus: { connected: boolean; error?: string } | null = null;
 let lastCheckTime = 0;
-const CACHE_TTL_MS = 15000; // Cache connection status for 15 seconds
+const SUCCESS_CACHE_TTL_MS = 30000; // 30 seconds if connected
+const FAILED_CACHE_TTL_MS = 60000;  // 60 seconds if failed to prevent recurring delays
 
 export async function checkDatabaseConnection(): Promise<{ connected: boolean; error?: string }> {
+  // Instant bypass if user explicitly configured in-memory mode
+  if (process.env.USE_IN_MEMORY_DB === 'true') {
+    return { connected: false, error: 'In-memory mode enabled via USE_IN_MEMORY_DB' };
+  }
+
   const now = Date.now();
-  if (cachedStatus && now - lastCheckTime < CACHE_TTL_MS) {
+  const ttl = cachedStatus?.connected ? SUCCESS_CACHE_TTL_MS : FAILED_CACHE_TTL_MS;
+  if (cachedStatus && now - lastCheckTime < ttl) {
     return cachedStatus;
   }
 
   try {
-    // 1.5s timeout race so it never blocks HTTP request pipelines
+    // 700ms fast timeout so requests and startup are near-instantaneous
     const queryPromise = prisma.$queryRaw`SELECT 1`;
     const timeoutPromise = new Promise<{ timeout: true }>((_, reject) =>
-      setTimeout(() => reject(new Error('Connection timed out')), 1500)
+      setTimeout(() => reject(new Error('Connection timed out')), 700)
     );
 
     await Promise.race([queryPromise, timeoutPromise]);
