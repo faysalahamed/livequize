@@ -8,6 +8,30 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  password     String
+  role         Role          @default(STUDENT)
+  avatar       String        @default("🎓")
+  rollNumber   String?
+  className    String?
+  department   String?
+  phone        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  createdQuizzes Quiz[]
+  participants   Participant[]
+}
+
 model Quiz {
   id          String        @id @default(cuid())
   title       String
@@ -15,6 +39,10 @@ model Quiz {
   theme       String        @default("default") // default, vibrant, dark, ocean
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+
+  creatorId   String?
+  creator     User?         @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+
   questions   Question[]
   sessions    GameSession[]
 }
@@ -64,6 +92,10 @@ model Participant {
   id        String        @id @default(cuid())
   sessionId String
   session   GameSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  userId    String?
+  user      User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   nickname  String
   avatar    String        @default("🚀")
   score     Int           @default(0)

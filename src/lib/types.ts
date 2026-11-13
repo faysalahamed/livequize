@@ -1,3 +1,18 @@
+export type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN';
+
+export interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  avatar: string;
+  rollNumber?: string | null;
+  className?: string | null;
+  department?: string | null;
+  phone?: string | null;
+  createdAt?: string | Date;
+}
+
 export type QuestionType = 'MULTIPLE_CHOICE' | 'POLL' | 'WORD_CLOUD' | 'RATING' | 'CONTENT_SLIDE';
 
 export interface OptionData {
@@ -25,6 +40,8 @@ export interface QuizData {
   title: string;
   description?: string | null;
   theme: string;
+  creatorId?: string | null;
+  creatorName?: string | null;
   createdAt?: string | Date;
   updatedAt?: string | Date;
   questions: QuestionData[];
@@ -34,6 +51,7 @@ export type SessionStatus = 'LOBBY' | 'QUESTION' | 'REVEAL' | 'LEADERBOARD' | 'F
 
 export interface ParticipantData {
   id: string;
+  userId?: string | null;
   nickname: string;
   avatar: string;
   score: number;
@@ -62,8 +80,22 @@ export interface SessionState {
   quizTitle: string;
   status: SessionStatus;
   currentQuestionIndex: number;
-  questionStartedAt: number | null;
+  questionStartedAt?: string | Date | null;
   participants: ParticipantData[];
-  responses: ResponseData[];
   questions: QuestionData[];
+  responses: ResponseData[];
+  createdAt?: string | Date;
+}
+
+export interface StudentQuizHistoryItem {
+  sessionId: string;
+  quizId: string;
+  quizTitle: string;
+  participantId: string;
+  score: number;
+  rank: number;
+  totalParticipants: number;
+  totalQuestions: number;
+  correctAnswers: number;
+  date: string | Date;
 }

@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from '@/components/Navbar';
-import { Play, Sparkles, BarChart3, Cloud, Trophy, Zap, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Play, Sparkles, GraduationCap, ArrowRight, Shield, BookOpen, Users, Trophy, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import { appConfig } from '@/config/app';
+import { useAuth } from '@/lib/auth-context';
 
 export default function HomePage() {
   const router = useRouter();
   const [pin, setPin] = useState('');
+  const { user } = useAuth();
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,122 +19,127 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-      <Navbar />
+    <div className="min-h-screen bg-[#F0F5FA] flex flex-col font-sans text-slate-800">
+      {/* Top Navbar */}
+      <nav className="w-full bg-white border-b border-slate-200/80 px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-sky-500 text-white flex items-center justify-center shadow-md shadow-sky-500/20">
+            <GraduationCap className="w-6 h-6 stroke-[2.2]" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black text-slate-800 leading-none">EduManage</h1>
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Live Academic Quizzes</span>
+          </div>
+        </Link>
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 flex flex-col items-center justify-center text-center">
+        <div className="flex items-center gap-3">
+          {user ? (
+            <Link
+              href={user.role === 'STUDENT' ? '/student' : '/dashboard'}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs shadow-md shadow-sky-500/20 transition"
+            >
+              <span>{user.avatar} My Dashboard</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/dashboard"
+                className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs shadow-md shadow-sky-500/20 transition"
+              >
+                Launch Dashboard
+              </Link>
+            </>
+          )}
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <main className="flex-1 max-w-5xl mx-auto px-4 py-12 md:py-20 flex flex-col items-center text-center">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-950/80 border border-brand-800/80 text-brand-300 text-xs font-bold uppercase tracking-wider mb-8 shadow-inner">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Real-time Mentimeter & Kahoot Alternative</span>
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-xs font-bold uppercase tracking-wider mb-6">
+          <Sparkles className="w-4 h-4 text-sky-500" />
+          <span>EduManage School System & Live Quiz Arena</span>
         </div>
 
         {/* Hero Title */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight max-w-4xl leading-[1.1] mb-6">
-          Turn passive listeners into{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-indigo-300 to-purple-400">
-            active participants
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-slate-800 tracking-tight max-w-3xl leading-[1.15] mb-4">
+          ইন্টারেক্টিভ লাইভ কুইজ ও{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600">
+            শিক্ষার্থী পারফরম্যান্স ট্র্যাকিং
           </span>
         </h1>
 
-        {/* Subtitle */}
-        <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-12 font-medium leading-relaxed">
-          Host interactive live quizzes, real-time audience polls, and vibrant word clouds. Powered by Next.js, PostgreSQL, and WebSockets.
+        <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto mb-10 font-normal leading-relaxed">
+          শিক্ষক ও অ্যাডমিনদের জন্য সরাসরি কুইজ প্রেজেন্টেশন এবং ছাত্র-ছাত্রীদের জন্য তাৎক্ষণিক অংশগ্রহণ ও পূর্ববর্তী কুইজের অবস্থান পর্যালোচনা।
         </p>
 
-        {/* Primary Action Card: Join with Game PIN */}
-        <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl mb-12 transform hover:scale-[1.01] transition-all">
-          <h2 className="text-xl font-bold text-white mb-2">Joining a Live Session?</h2>
-          <p className="text-xs text-slate-400 mb-6">Enter the 6-digit code shown on the presenter's screen</p>
+        {/* 6-Digit PIN Join Card matching EduManage form style */}
+        <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-lg shadow-slate-200/40 mb-12">
+          <h2 className="text-base font-black text-slate-800 mb-1">কুইজে অংশ নিতে পিন (PIN) দিন</h2>
+          <p className="text-xs text-slate-400 mb-6 font-medium">শিক্ষকের প্রেজেন্টার স্ক্রিনের ৬-সংখ্যার পিন লিখুন</p>
 
           <form onSubmit={handleJoin} className="space-y-4">
-            <div>
-              <input
-                type="text"
-                placeholder="123 456"
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full text-center text-3xl font-black tracking-widest font-mono py-4 px-4 rounded-2xl bg-slate-950 border-2 border-slate-700 text-white placeholder-slate-600 focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20 transition"
-                autoFocus
-              />
-            </div>
+            <input
+              type="text"
+              placeholder="123 456"
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              className="w-full text-center text-3xl font-black tracking-widest font-mono py-3.5 px-4 rounded-2xl bg-sky-50/50 border-2 border-slate-200 text-slate-800 placeholder-slate-300 focus:outline-none focus:border-sky-500 focus:bg-white transition"
+              autoFocus
+            />
 
             <button
               type="submit"
               disabled={pin.length < 6}
-              className="w-full py-4 px-6 rounded-2xl bg-brand-600 hover:bg-brand-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-base tracking-wide shadow-lg shadow-brand-600/30 transition flex items-center justify-center gap-2 group"
+              className="w-full py-3.5 px-6 rounded-2xl bg-sky-500 hover:bg-sky-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-sky-500/25 transition flex items-center justify-center gap-2"
             >
-              <Play className="w-5 h-5 fill-current" />
-              <span>Enter Quiz Lobby</span>
-              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+              <Play className="w-4 h-4 fill-white" />
+              <span>Enter Quiz Arena</span>
+              <ArrowRight className="w-4 h-4 ml-1" />
             </button>
           </form>
         </div>
 
-        {/* Host Call-to-Action */}
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-20">
-          <Link
-            href="/dashboard"
-            className="px-6 py-3.5 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 shadow-md transition flex items-center gap-2 hover:scale-105"
-          >
-            <span>Host or Create a Quiz</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link
-            href="/quiz/new"
-            className="px-6 py-3.5 rounded-2xl bg-indigo-950/60 hover:bg-indigo-900/60 text-indigo-300 font-bold text-sm border border-indigo-800/60 shadow-md transition hover:scale-105"
-          >
-            + Create New Quiz
-          </Link>
-        </div>
-
-        {/* Feature Highlights Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl text-left">
-          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur">
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4">
-              <BarChart3 className="w-6 h-6" />
+        {/* Feature Cards Grid (EduManage clean 3-col card style) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
+          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center mb-4">
+              <Users className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Live Animated Bar Charts</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Watch votes roll in instantly. Audience votes update the host screen with smooth bar animations in under 50ms.
+            <h3 className="text-sm font-bold text-slate-800 mb-1">👨‍🎓 ছাত্র পোর্টাল (Student Standings)</h3>
+            <p className="text-xs text-slate-500 leading-relaxed font-normal">
+              ছাত্ররা তাদের অংশগ্রহণকৃত পূর্ববর্তী সব কুইজের স্কোর, র‍্যাঙ্ক ও সঠিক উত্তরের পার্সেন্টেজ সরাসরি দেখতে পারবে।
             </p>
           </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-4">
-              <Cloud className="w-6 h-6" />
+          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mb-4">
+              <BookOpen className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Dynamic Word Clouds</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Let audiences submit single words or ideas. The system dynamically groups and sizes terms based on live frequency.
+            <h3 className="text-sm font-bold text-slate-800 mb-1">👩‍🏫 শিক্ষক ড্যাশবোর্ড (Teacher Host)</h3>
+            <p className="text-xs text-slate-500 leading-relaxed font-normal">
+              পাওয়ারপয়েন্ট-সদৃশ কনটেন্ট স্লাইড, ইমেজ এবং Math ($a^2, \frac&#123;1&#125;&#123;2&#125;$) ফর্মুলা সহ প্রেজেন্টেশন পরিচালনা।
             </p>
           </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
+          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-500 flex items-center justify-center mb-4">
               <Trophy className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Podium & Speed Scoring</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Kahoot/Mentimeter style speed multipliers reward lightning-fast answers, ending with a celebratory confetti finale!
+            <h3 className="text-sm font-bold text-slate-800 mb-1">🛡️ অ্যাডমিন ও ম্যানেজমেন্ট</h3>
+            <p className="text-xs text-slate-500 leading-relaxed font-normal">
+              সম্পূর্ণ স্কুল সিস্টেমের ছাত্র-শিক্ষক তালিকা ও গ্লোবাল কুইজ লিডারবোর্ড ট্র্যাকিং।
             </p>
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 py-8 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} {appConfig.name} • {appConfig.footerText}</p>
-          <div className="flex items-center gap-4 text-slate-400">
-            <span>Next.js App Router</span>
-            <span>•</span>
-            <span>PostgreSQL</span>
-            <span>•</span>
-            <span>Socket.io WebSockets</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
