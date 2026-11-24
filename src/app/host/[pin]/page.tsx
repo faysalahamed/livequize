@@ -61,11 +61,23 @@ export default function HostLivePage() {
   useEffect(() => {
     if (!socket || !pin) return;
 
-    socket.emit('join_room', { pin, role: 'host' });
+    const doSync = () => {
+      socket.emit('join_room', { pin, role: 'host' });
+    };
+
+    if (socket.connected) {
+      doSync();
+    }
+    socket.on('connect', doSync);
 
     socket.on('session_synced', ({ session: s }: { session: SessionState }) => {
       setSession(s);
       setLoading(false);
+    });
+
+    socket.on('error_message', ({ message }: { message: string }) => {
+      alert(message || 'Session not found');
+      router.push('/dashboard');
     });
 
     socket.on('participant_joined', ({ participants }: { participants: ParticipantData[] }) => {
@@ -115,7 +127,9 @@ export default function HostLivePage() {
     });
 
     return () => {
+      socket.off('connect', doSync);
       socket.off('session_synced');
+      socket.off('error_message');
       socket.off('participant_joined');
       socket.off('participant_left');
       socket.off('quiz_started');

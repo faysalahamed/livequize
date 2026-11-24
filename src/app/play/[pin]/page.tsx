@@ -17,8 +17,13 @@ import {
   Lock,
   Sparkles,
   Presentation,
+  Play,
+  ArrowRight,
+  AlertCircle,
+  ArrowLeft,
 } from 'lucide-react';
 import MathRenderer from '@/components/MathRenderer';
+import { useAuth } from '@/lib/auth-context';
 
 const SHAPES = ['▲', '◆', '●', '■', '★', '⬟'];
 const BUTTON_COLORS = [
@@ -35,10 +40,17 @@ export default function PlayGamePage() {
   const router = useRouter();
   const pin = params?.pin as string;
   const { socket, isConnected } = useSocket();
+  const { user } = useAuth();
 
   const [session, setSession] = useState<SessionState | null>(null);
   const [participant, setParticipant] = useState<ParticipantData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Fallback inline join state if student enters /play/[pin] directly without storage
+  const [promptNickname, setPromptNickname] = useState('');
+  const [promptAvatar, setPromptAvatar] = useState('🚀');
+  const [needsNamePrompt, setNeedsNamePrompt] = useState(false);
 
   // Answering state
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
@@ -54,99 +66,159 @@ export default function PlayGamePage() {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Get nickname and avatar from sessionStorage or prompt
+  const AVATARS = ['🚀', '🦁', '🦊', '⚡', '🌟', '🦄', '🎯', '🔥', '🎓', '💎'];
+
+  // Helper to read stored credentials from all sources
+  const getStoredCreds = () => {
+    if (typeof window === 'undefined') return { nickname: '', avatar: '🚀', userId: null };
+    const nickname =
+      sessionStorage.getItem('menti_nickname') ||
+      sessionStorage.getItem('magicquize_nickname') ||
+      localStorage.getItem('magicquize_nickname') ||
+      localStorage.getItem('menti_nickname') ||
+      user?.name ||
+      '';
+    const avatar =
+      sessionStorage.getItem('menti_avatar') ||
+      sessionStorage.getItem('magicquize_avatar') ||
+      localStorage.getItem('magicquize_avatar') ||
+      localStorage.getItem('menti_avatar') ||
+      user?.avatar ||
+      '🚀';
+    const userId =
+      sessionStorage.getItem('menti_userId') ||
+      sessionStorage.getItem('magicquize_userId') ||
+      localStorage.getItem('magicquize_userId') ||
+      user?.id ||
+      null;
+    return { nickname, avatar, userId };
+  };
+
+  // Check credentials & trigger join
   useEffect(() => {
     if (!pin) return;
 
-    let nickname = '';
-    let avatar = '🚀';
-
-    if (typeof window !== 'undefined') {
-      nickname = sessionStorage.getItem('menti_nickname') || '';
-      avatar = sessionStorage.getItem('menti_avatar') || '🚀';
-    }
-
-    if (!nickname) {
-      router.push(`/join?pin=${pin}`);
+    const creds = getStoredCreds();
+    if (!creds.nickname && !promptNickname) {
+      setNeedsNamePrompt(true);
+      setLoading(false);
       return;
     }
 
+    const effectiveNickname = promptNickname || creds.nickname;
+    const effectiveAvatar = promptNickname ? promptAvatar : creds.avatar;
+    const effectiveUserId = creds.userId;
+
+    if (!socket) return;
+
+    const emitJoin = () => {
+      socket.emit('join_room', {
+        pin,
+        role: 'player',
+        nickname: effectiveNickname,
+        avatar: effectiveAvatar,
+        userId: effectiveUserId,
+      });
+    };
+
+    if (socket.connected) {
+      emitJoin();
+    }
+    socket.on('connect', emitJoin);
+
+    socket.on(
+      'joined_successfully',
+      ({ participant: p, session: s }: { participant: ParticipantData; session: SessionState }) => {
+        setParticipant(p);
+        setSession(s);
+        setLoading(false);
+        setNeedsNamePrompt(false);
+        setErrorMessage(null);
+      }
+    );
+
+    socket.on('quiz_started', ({ session: s }: { session: SessionState }) => {
+      setSession(s);
+      setHasAnswered(false);
+      setSelectedOptionId(null);
+      setAnswerResult(null);
+      setWordInput('');
+    });
+
+    socket.on('question_changed', ({ session: s }: { session: SessionState }) => {
+      setSession(s);
+      setHasAnswered(false);
+      setSelectedOptionId(null);
+      setAnswerResult(null);
+      setWordInput('');
+    });
+
+    socket.on(
+      'answer_confirmed',
+      (result: { isCorrect: boolean; pointsAwarded: number; totalScore: number }) => {
+        setHasAnswered(true);
+        setAnswerResult(result);
+        if (result.isCorrect && result.pointsAwarded > 0) {
+          sounds.playCorrect();
+        }
+        setParticipant((prev) => (prev ? { ...prev, score: result.totalScore } : null));
+      }
+    );
+
+    socket.on('answer_revealed', ({ session: s }: { session: SessionState }) => {
+      setSession(s);
+    });
+
+    socket.on('leaderboard_updated', ({ session: s }: { session: SessionState }) => {
+      setSession(s);
+    });
+
+    socket.on('quiz_finished', ({ session: s }: { session: SessionState }) => {
+      setSession(s);
+    });
+
+    socket.on('error_message', ({ message }: { message: string }) => {
+      setErrorMessage(message || 'Unable to join quiz room.');
+      setLoading(false);
+    });
+
+    return () => {
+      socket.off('connect', emitJoin);
+      socket.off('joined_successfully');
+      socket.off('quiz_started');
+      socket.off('question_changed');
+      socket.off('answer_confirmed');
+      socket.off('answer_revealed');
+      socket.off('leaderboard_updated');
+      socket.off('quiz_finished');
+      socket.off('error_message');
+    };
+  }, [socket, pin, promptNickname, promptAvatar, user]);
+
+  const handleInlineJoin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!promptNickname.trim()) return;
+    try {
+      localStorage.setItem('magicquize_nickname', promptNickname.trim());
+      localStorage.setItem('magicquize_avatar', promptAvatar);
+      sessionStorage.setItem('magicquize_nickname', promptNickname.trim());
+      sessionStorage.setItem('menti_nickname', promptNickname.trim());
+      sessionStorage.setItem('menti_avatar', promptAvatar);
+    } catch (err) {
+      console.warn(err);
+    }
+    setLoading(true);
+    setNeedsNamePrompt(false);
     if (socket) {
       socket.emit('join_room', {
         pin,
         role: 'player',
-        nickname,
-        avatar,
-      });
-
-      socket.on(
-        'joined_successfully',
-        ({ participant: p, session: s }: { participant: ParticipantData; session: SessionState }) => {
-          setParticipant(p);
-          setSession(s);
-          setLoading(false);
-        }
-      );
-
-      socket.on('quiz_started', ({ session: s }: { session: SessionState }) => {
-        setSession(s);
-        setHasAnswered(false);
-        setSelectedOptionId(null);
-        setAnswerResult(null);
-        setWordInput('');
-      });
-
-      socket.on('question_changed', ({ session: s }: { session: SessionState }) => {
-        setSession(s);
-        setHasAnswered(false);
-        setSelectedOptionId(null);
-        setAnswerResult(null);
-        setWordInput('');
-      });
-
-      socket.on(
-        'answer_confirmed',
-        (result: { isCorrect: boolean; pointsAwarded: number; totalScore: number }) => {
-          setHasAnswered(true);
-          setAnswerResult(result);
-          if (result.isCorrect && result.pointsAwarded > 0) {
-            sounds.playCorrect();
-          }
-          setParticipant((prev) => (prev ? { ...prev, score: result.totalScore } : null));
-        }
-      );
-
-      socket.on('answer_revealed', ({ session: s }: { session: SessionState }) => {
-        setSession(s);
-      });
-
-      socket.on('leaderboard_updated', ({ session: s }: { session: SessionState }) => {
-        setSession(s);
-      });
-
-      socket.on('quiz_finished', ({ session: s }: { session: SessionState }) => {
-        setSession(s);
-      });
-
-      socket.on('error_message', ({ message }: { message: string }) => {
-        alert(message);
-        router.push('/join');
+        nickname: promptNickname.trim(),
+        avatar: promptAvatar,
+        userId: user?.id || null,
       });
     }
-
-    return () => {
-      if (socket) {
-        socket.off('joined_successfully');
-        socket.off('quiz_started');
-        socket.off('question_changed');
-        socket.off('answer_confirmed');
-        socket.off('answer_revealed');
-        socket.off('leaderboard_updated');
-        socket.off('quiz_finished');
-        socket.off('error_message');
-      }
-    };
-  }, [socket, pin, router]);
+  };
 
   // Timer countdown
   useEffect(() => {
@@ -206,11 +278,113 @@ export default function PlayGamePage() {
     });
   };
 
+  // 1. Error state (e.g. Session not found or expired)
+  if (errorMessage) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-6">
+        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center shadow-2xl">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-amber-400" />
+          </div>
+          <h2 className="text-xl font-black text-white mb-2">Unable to Join Session</h2>
+          <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+            {errorMessage}
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => router.push('/join')}
+              className="w-full py-3.5 px-4 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs shadow-lg shadow-sky-500/25 transition flex items-center justify-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Enter Another PIN</span>
+            </button>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Direct-access Nickname Prompt (when player opens /play/[pin] directly without having filled /join)
+  if (needsNamePrompt) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-6">
+        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-sky-950 text-sky-400 text-xs font-bold uppercase tracking-wider mb-2 border border-sky-800">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Room {pin}</span>
+            </div>
+            <h2 className="text-2xl font-black text-white">Join Quiz Arena</h2>
+            <p className="text-xs text-slate-400 mt-1">Enter your nickname to start participating</p>
+          </div>
+
+          <form onSubmit={handleInlineJoin} className="space-y-5">
+            <div>
+              <label className="text-xs font-bold text-slate-400 block mb-1.5 uppercase tracking-wider">
+                Your Nickname
+              </label>
+              <input
+                type="text"
+                required
+                maxLength={24}
+                value={promptNickname}
+                onChange={(e) => setPromptNickname(e.target.value)}
+                placeholder="e.g. Alex, Maria..."
+                autoFocus
+                className="w-full px-4 py-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm font-bold focus:outline-none focus:border-sky-500 transition"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-400 block mb-2 uppercase tracking-wider text-center">
+                Pick Avatar
+              </label>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {AVATARS.map((av) => (
+                  <button
+                    key={av}
+                    type="button"
+                    onClick={() => setPromptAvatar(av)}
+                    className={`w-11 h-11 rounded-xl text-xl flex items-center justify-center transition ${
+                      promptAvatar === av
+                        ? 'bg-sky-500 text-white scale-110 shadow-lg shadow-sky-500/30'
+                        : 'bg-slate-800 border border-slate-700 hover:bg-slate-700'
+                    }`}
+                  >
+                    {av}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={!promptNickname.trim()}
+              className="w-full py-4 px-6 rounded-xl bg-sky-500 hover:bg-sky-600 disabled:opacity-40 text-white font-bold text-sm tracking-wide shadow-lg shadow-sky-500/25 transition flex items-center justify-center gap-2"
+            >
+              <Play className="w-4 h-4 fill-white" />
+              <span>Enter Room</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Loading / Connecting state
   if (loading || !participant || !session) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-4">
-        <Loader2 className="w-10 h-10 animate-spin text-brand-400 mb-4" />
-        <p className="text-base font-bold text-slate-300">Entering Quiz Room {pin}...</p>
+        <Loader2 className="w-10 h-10 animate-spin text-sky-400 mb-4" />
+        <p className="text-base font-bold text-slate-200">Connecting to Quiz Room {pin}...</p>
+        <p className="text-xs text-slate-500 mt-1">Synchronizing live questions with instructor</p>
       </div>
     );
   }

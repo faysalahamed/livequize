@@ -46,7 +46,7 @@ app.prepare().then(() => {
     let participantId: string | null = null;
 
     // Join room
-    socket.on('join_room', ({ pin, role, nickname, avatar, participantId: existingParticipantId }) => {
+    socket.on('join_room', ({ pin, role, nickname, avatar, userId, participantId: existingParticipantId }) => {
       currentPin = pin;
       socket.join(`room:${pin}`);
 
@@ -64,11 +64,14 @@ app.prepare().then(() => {
           if (participant) {
             participant.socketId = socket.id;
             participantId = participant.id;
+            if (userId && !participant.userId) {
+              participant.userId = userId;
+            }
           }
         }
 
         if (!participant && nickname) {
-          const result = quizService.addParticipantToSession(pin, nickname, avatar || '🚀', socket.id);
+          const result = quizService.addParticipantToSession(pin, nickname, avatar || '🚀', socket.id, userId);
           if (result) {
             session = result.session;
             participant = result.participant;
